@@ -34,6 +34,7 @@ Assets live in `public/brand/` (emblem, full logo, "How I Grow Hydroponics" bann
 | 4 | Customer sees **Status: For verification** | Set automatically once every payment split has a proof. |
 | 5 | Customer sees **Status: Payment verified** | Set when the manager has verified every split. The page updates live (Realtime) and an email is sent. |
 | 6 | Payment method options | `payment_methods` table (GCash, bank/QR Ph, Maya, other). Managed in **Manager → Payment methods**. |
+| – | Verify without proof of payment | If a payment has no proof, the manager clicks **Verify without proof…**. A warning popup shows the account and amount, and the manager must tick **I agree** before **Confirm & verify payment**. An optional reference no. can be entered. The payment is flagged `verified_without_proof`, and an internal note records who confirmed it and when. |
 | 6.1 | Manager comments when unable to verify | A comment is required to reject. It is stored on the payment and in `order_comments`. |
 | 6.2 | Customer sees comments on order page | Shown in the red status banner, under the rejected payment and in the comment thread. Customers can reply. |
 | 7 | Customer sees promo products | "🔥 Promo deals" section at the top of the shop, with promo badge, % off, strikethrough price and end date. |
@@ -128,6 +129,34 @@ cp .env.example .env    # fill in your Supabase URL + anon key
 npm install
 npm run dev             # http://localhost:5173
 ```
+
+### 5. Continuous deployment (GitHub Actions)
+`.github/workflows/deploy.yml` runs on every push to `main`:
+
+1. **build**: `npm ci` and `npm run build`. This also runs on pull requests as a check.
+2. **supabase** (only when files under `supabase/` changed): `supabase db push` applies new migrations, and `supabase functions deploy` deploys the Edge Functions.
+3. **web**: deploys `dist/` to Cloudflare with `wrangler deploy`. It runs only after the database step succeeds or was skipped.
+
+You can also start it manually: GitHub → **Actions → CI / Deploy → Run workflow**. A manual run redeploys everything.
+
+**GitHub settings** (repo → Settings → Secrets and variables → Actions):
+
+| Type | Name | Value |
+|---|---|---|
+| Variable | `VITE_SUPABASE_URL` | `https://<ref>.supabase.co` |
+| Variable | `VITE_SUPABASE_ANON_KEY` | publishable / anon key |
+| Variable | `SUPABASE_PROJECT_ID` | `<ref>` |
+| Secret | `SUPABASE_ACCESS_TOKEN` | supabase.com → Account → Access Tokens |
+| Secret | `SUPABASE_DB_PASSWORD` | database password from project creation |
+| Secret | `CLOUDFLARE_API_TOKEN` | Cloudflare → My Profile → API Tokens → "Edit Cloudflare Workers" template |
+| Secret | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → Workers & Pages (right sidebar) |
+
+**One-time steps:**
+- The first migration was applied by hand in the SQL Editor, so mark it as applied. Otherwise CI will try to run it again:
+  `npx supabase migration repair --status applied 20261115000000`
+- Disconnect Cloudflare's own Git build (Workers → katanim → Settings → Build → Git repository → Disconnect) so each push deploys once, not twice.
+
+**New database changes:** run `npx supabase migration new <name>`, write the SQL, and push. Never edit a migration that has already been applied.
 
 ---
 

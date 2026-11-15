@@ -9,6 +9,7 @@ import OrderTimeline from '../../components/OrderTimeline.jsx';
 import ProofViewer from '../../components/ProofViewer.jsx';
 import Comments from '../../components/Comments.jsx';
 import Spinner from '../../components/Spinner.jsx';
+import ConfirmDialog from '../../components/ConfirmDialog.jsx';
 
 export default function OrderReview() {
   const { id } = useParams();
@@ -77,7 +78,15 @@ export default function OrderReview() {
               reject with a comment — the customer sees it on their order page and by email.
             </p>
             {payments.map((p, idx) => (
-              <ReviewPayment key={p.id} payment={p} index={idx + 1} count={payments.length} orderId={order.id} onDone={load} />
+              <ReviewPayment
+                key={p.id}
+                payment={p}
+                index={idx + 1}
+                count={payments.length}
+                orderId={order.id}
+                orderStatus={order.status}
+                onDone={load}
+              />
             ))}
           </section>
 
@@ -165,13 +174,20 @@ export default function OrderReview() {
   );
 }
 
-function ReviewPayment({ payment, index, count, orderId, onDone }) {
+const CLOSED = ['payment_verified', 'shipped', 'delivered', 'received', 'cancelled'];
+
+function ReviewPayment({ payment, index, count, orderId, orderStatus, onDone }) {
   const m = payment.payment_methods || {};
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [reference, setReference] = useState('');
 
-  async function review(approve) {
+  const hasProof = payment.status === 'submitted' && Boolean(payment.proof_path);
+  const reviewable = !CLOSED.includes(orderStatus) && payment.status !== 'verified';
+
+  async function review(approve, withoutProof = false) {
     if (!approve && !comment.trim()) return setError('Add a comment so the customer knows what to fix.');
     setBusy(true);
     setError('');
@@ -179,13 +195,24 @@ function ReviewPayment({ payment, index, count, orderId, onDone }) {
       p_payment_id: payment.id,
       p_approve: approve,
       p_comment: comment || null,
+      p_without_proof: withoutProof,
+      p_reference: withoutProof ? reference || null : null,
     });
     setBusy(false);
     if (err) return setError(errorMessage(err));
     setComment('');
+    setReference('');
+    setConfirmOpen(false);
     if (newStatus === 'payment_verified') notify(orderId, 'payment_verified');
     if (newStatus === 'payment_rejected' && !approve) notify(orderId, 'payment_rejected');
     onDone();
+  }
+
+  // Verify: straight through when there is a proof, otherwise ask for confirmation first.
+  function handleVerify() {
+    setError('');
+    if (hasProof) review(true);
+    else setConfirmOpen(true);
   }
 
   return (
@@ -199,6 +226,7 @@ function ReviewPayment({ payment, index, count, orderId, onDone }) {
         <div className="right">
           <div className="price">{peso(payment.amount)}</div>
           <StatusBadge status={payment.status} kind="payment" />
+          {payment.verified_without_proof && <span className="badge badge-warn">Verified without proof</span>}
         </div>
       </div>
 
@@ -213,10 +241,13 @@ function ReviewPayment({ payment, index, count, orderId, onDone }) {
           </div>
         </div>
       ) : (
-        <p className="muted small">Customer has not uploaded proof for this payment yet.</p>
+        <p className="muted small">
+          Customer has not uploaded proof for this payment.
+          {payment.reference_no && <> Reference no.: <strong>{payment.reference_no}</strong></>}
+        </p>
       )}
 
-      {payment.status === 'submitted' && (
+      {reviewable && hasProof && (
         <div className="form">
           <textarea
             rows={2}
@@ -226,11 +257,57 @@ function ReviewPayment({ payment, index, count, orderId, onDone }) {
           />
           {error && <div className="alert alert-error">{error}</div>}
           <div className="row wrap">
-            <button className="btn btn-primary" disabled={busy} onClick={() => review(true)}>✓ Payment received — verify</button>
+            <button className="btn btn-primary" disabled={busy} onClick={handleVerify}>✓ Payment received — verify</button>
             <button className="btn btn-danger" disabled={busy} onClick={() => review(false)}>✕ Cannot verify</button>
           </div>
         </div>
       )}
+
+      {reviewable && !hasProof && (
+        <div className="no-proof">
+          <div className="alert alert-warn small">
+            <strong>No proof of payment attached.</strong>{' '}
+            {payment.status === 'rejected'
+              ? 'The last proof was not verified and no new one has been uploaded.'
+              : 'You can still verify it if you have confirmed the money arrived in the account.'}
+          </div>
+          {error && !confirmOpen && <div className="alert alert-error">{error}</div>}
+          <button className="btn btn-outline" disabled={busy} onClick={handleVerify}>
+            ✓ Verify without proof…
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="No proof of payment attached"
+        confirmLabel="Confirm & verify payment"
+        agreeLabel={`I agree — I checked ${m.label || 'the account'} and confirmed that ${peso(payment.amount)} was received.`}
+        busy={busy}
+        onCancel={() => {
+          setConfirmOpen(false);
+          setError('');
+        }}
+        onConfirm={() => review(true, true)}
+      >
+        <p>
+          This payment has <strong>no proof of payment</strong>. Only continue if you have checked the account and the
+          money is there:
+        </p>
+        <ul className="confirm-facts">
+          <li><span>Account</span><strong>{m.label}</strong></li>
+          <li><span>Number</span><strong>{m.account_number || '—'}</strong></li>
+          <li><span>Amount</span><strong>{peso(payment.amount)}</strong></li>
+        </ul>
+        <label className="field">
+          Reference no. from the bank / GCash app (optional)
+          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="e.g. 1234 567 890" />
+        </label>
+        <p className="muted small">
+          This is recorded on the order as &ldquo;verified without proof&rdquo;, with your name and the time.
+        </p>
+        {error && <div className="alert alert-error">{error}</div>}
+      </ConfirmDialog>
     </div>
   );
 }
