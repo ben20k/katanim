@@ -1,10 +1,27 @@
-export default function Logo({ size = 32 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-      <rect width="64" height="64" rx="14" fill="#1f6f4a" />
-      <path d="M32 52V28" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
-      <path d="M32 34c-10 0-16-6-16-16 10 0 16 6 16 16z" fill="#c6e377" />
-      <path d="M32 30c0-10 6-16 16-16 0 10-6 16-16 16z" fill="#fff" />
-    </svg>
+// Katanim brand mark: the round emblem, optionally with the wordmark beside it.
+export default function Logo({ size = 40, withText = false, light = false }) {
+  const emblem = (
+    <img
+      src="/brand/katanim-emblem.webp"
+      width={size}
+      height={size}
+      alt={withText ? '' : 'Katanim Modern Agriculture'}
+      className="logo-emblem"
+    />
   );
+  if (!withText) return emblem;
+  return (
+    <span className={`logo ${light ? 'logo-light' : ''}`}>
+      {emblem}
+      <span className="wordmark">
+        <span className="wordmark-name">KATANIM</span>
+        <span className="wordmark-sub">MODERN AGRICULTURE</span>
+      </span>
+    </span>
+  );
+}
+
+// The colored band taken from the emblem (leaf · water · sun · soil · sky).
+export function BrandStripe() {
+  return <div className="brand-stripe" aria-hidden="true" />;
 }

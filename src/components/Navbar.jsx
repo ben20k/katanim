@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
-import Logo from './Logo.jsx';
+import Logo, { BrandStripe } from './Logo.jsx';
 
 export default function Navbar() {
   const { user, profile, isManager, signOut } = useAuth();
@@ -16,11 +16,8 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="container nav-inner">
-        <Link to="/" className="brand">
-          <Logo size={34} />
-          <span>
-            Katanim<small>Modern Agriculture</small>
-          </span>
+        <Link to="/" className="brand" aria-label="Katanim Modern Agriculture — home">
+          <Logo size={46} withText />
         </Link>
         <nav className="nav-links">
           <NavLink to="/" end>Shop</NavLink>
@@ -38,6 +35,7 @@ export default function Navbar() {
           )}
         </nav>
       </div>
+      <BrandStripe />
     </header>
   );
 }

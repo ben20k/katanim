@@ -39,16 +39,42 @@ export default function Shop() {
     <>
       <section className="hero">
         <div className="container hero-inner">
-          <div>
-            <span className="eyebrow light">Katanim Modern Agriculture</span>
-            <h1>Grow more with smarter farm inputs.</h1>
+          <div className="hero-copy">
+            <span className="hashtag">#Katanim</span>
+            <h1>
+              Grow clean, fresh greens <span className="text-water">the hydroponic way.</span>
+            </h1>
             <p>
-              Quality seeds, organic fertilizers, drip irrigation and hydroponic kits — shipped nationwide through J&amp;T
-              Express. Pay by GCash, Maya or bank QR.
+              Hydroponic kits, seeds, nutrients and farm inputs from Katanim Modern Agriculture — delivered nationwide
+              through J&amp;T Express. Pay with GCash, Maya or bank QR.
             </p>
-            <a href="#products" className="btn btn-lime">Shop now</a>
+            <div className="row wrap">
+              <a href="#products" className="btn btn-primary btn-lg">Shop now</a>
+              {categories.includes('Hydroponics') && (
+                <a
+                  href="#products"
+                  className="btn btn-outline btn-lg"
+                  onClick={() => setCategory('Hydroponics')}
+                >
+                  Hydroponic kits
+                </a>
+              )}
+            </div>
+            <p className="tagline-script">So clean, so good.</p>
           </div>
-          <div className="hero-art" aria-hidden="true">🌾</div>
+          <img
+            className="hero-art"
+            src="/brand/how-i-grow-hydroponics.webp"
+            alt="This is how I grow hydroponics — #Katanim"
+            width="1100"
+            height="732"
+          />
+        </div>
+        <div className="container perks">
+          <div className="perk"><span className="perk-icon perk-water">💧</span><div><strong>Soil-free growing</strong><span>Kits &amp; nutrients for hydroponics</span></div></div>
+          <div className="perk"><span className="perk-icon perk-leaf">🌱</span><div><strong>Quality seeds &amp; inputs</strong><span>For backyard and farm growers</span></div></div>
+          <div className="perk"><span className="perk-icon perk-sun">🚚</span><div><strong>Nationwide delivery</strong><span>Shipping fee computed at checkout</span></div></div>
+          <div className="perk"><span className="perk-icon perk-soil">📱</span><div><strong>GCash · Maya · QR</strong><span>Upload proof, we verify fast</span></div></div>
         </div>
       </section>
 

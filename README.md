@@ -4,6 +4,22 @@ An online store for farm inputs: customers order, pay by GCash, Maya or bank QR,
 
 **Stack:** React 18 + Vite · Supabase (Postgres, Auth, Storage, Realtime, Edge Functions) · Resend (email) · Cloudflare (domain, DNS, Pages hosting)
 
+## Brand
+
+| Token | Color | Use |
+|---|---|---|
+| Katanim green | `#00a651` | Wordmark, accents, large text |
+| Button green | `#007a3c` | Buttons and links (accessible on white) |
+| Forest | `#065535` | Dark leaf, prices |
+| Ink | `#0b260f` | Headings, footer |
+| Water blue | `#1a5fc0` / `#0082e9` | Info states, "hydroponic" highlight |
+| Sun | `#fde26a` | Highlights, footer tagline |
+| Orange | `#e37238` / `#b4501a` | Promo tags, cart count |
+| Soil | `#5f3c14` | Brand stripe |
+
+Fonts: **Poppins** (UI, wordmark in 800 italic) and **Kaushan Script** (`#Katanim`, "So clean, so good."), loaded from Google Fonts.
+Assets live in `public/brand/` (emblem, full logo, "How I Grow Hydroponics" banner, social preview image), plus `public/favicon.png` and `public/apple-touch-icon.png`.
+
 ---
 
 ## User stories → where they live
@@ -54,7 +70,8 @@ src/
   components/     Navbar, ProductCard, StatusBadge, ProofViewer, Comments, CapacityCard, …
   pages/          Shop, Cart, Checkout, Orders, OrderDetail, Login, Register
   pages/manager/  Dashboard, ManagerOrders, OrderReview, ManagerProducts, PaymentMethods, ShippingRates
-public/_redirects SPA fallback for Cloudflare Pages
+public/brand/     logo, emblem, hero banner, social image
+wrangler.jsonc    Cloudflare Workers static-assets config (SPA routing + custom domain)
 ```
 
 ### Security model
@@ -102,7 +119,6 @@ Emails sent: order placed (customer), proof uploaded (manager), payment verified
 2. **Host the app on Cloudflare Pages:** push this repo to GitHub, then go to **Workers & Pages → Create → Pages → Connect to Git**:
    - Framework preset: **Vite** · Build command: `npm run build` · Output directory: `dist`
    - Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-   - `public/_redirects` makes deep links like `/orders/123` work.
 3. Pages project → **Custom domains** → add `yourdomain.com` (and `www`). Cloudflare creates the DNS records.
 4. Update the Supabase Site URL and the function's `SITE_URL` to the final domain.
 

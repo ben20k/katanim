@@ -21,7 +21,7 @@ export default function ProductCard({ product }) {
         {product.image_url ? (
           <img src={product.image_url} alt={product.name} loading="lazy" />
         ) : (
-          <span className="product-placeholder">🌱</span>
+          <img className="product-placeholder" src="/brand/katanim-emblem.webp" alt="" />
         )}
         {promo && (
           <span className="promo-tag">

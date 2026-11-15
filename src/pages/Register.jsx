@@ -3,6 +3,7 @@ import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext.jsx';
 import { errorMessage } from '../lib/format';
+import Logo from '../components/Logo.jsx';
 
 export default function Register() {
   const { user } = useAuth();
@@ -49,7 +50,9 @@ export default function Register() {
   return (
     <div className="container narrow">
       <div className="card auth-card">
-        <h1>Create account</h1>
+        <div className="auth-brand"><Logo size={72} /></div>
+        <h1>Join #Katanim</h1>
+        <p className="muted small">Create an account to order hydroponic kits and farm inputs.</p>
         <form className="form" onSubmit={submit}>
           <label className="field">
             Full name

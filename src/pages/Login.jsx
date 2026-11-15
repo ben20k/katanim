@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext.jsx';
 import { errorMessage } from '../lib/format';
+import Logo from '../components/Logo.jsx';
 
 export default function Login() {
   const { user } = useAuth();
@@ -39,7 +40,9 @@ export default function Login() {
   return (
     <div className="container narrow">
       <div className="card auth-card">
-        <h1>Sign in</h1>
+        <div className="auth-brand"><Logo size={72} /></div>
+        <h1>Welcome back</h1>
+        <p className="muted small">Sign in to order and track your Katanim deliveries.</p>
         <form className="form" onSubmit={submit}>
           <label className="field">
             Email

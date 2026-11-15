@@ -137,19 +137,33 @@ Deno.serve(async (req) => {
       .join('');
 
     const html = `
-      <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#1c2b24">
-        <div style="background:#1f6f4a;color:#fff;padding:18px 24px;border-radius:10px 10px 0 0;font-size:20px;font-weight:bold">🌱 Katanim Modern Agriculture</div>
-        <div style="border:1px solid #e2e8de;border-top:0;padding:24px;border-radius:0 0 10px 10px">
-          <h2 style="margin-top:0">${c.heading}</h2>
-          <p style="line-height:1.5">${c.body}</p>
+      <div style="background:#f6faf6;padding:24px 12px;font-family:Poppins,Arial,Helvetica,sans-serif;color:#1a2a1e">
+      <div style="max-width:560px;margin:auto;background:#ffffff;border:1px solid #dfe9e1;border-radius:16px;overflow:hidden">
+        <div style="padding:18px 24px;border-bottom:1px solid #dfe9e1">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="padding-right:12px"><img src="${SITE_URL}/brand/katanim-emblem.png" width="48" height="48" alt="Katanim" style="display:block"></td>
+            <td>
+              <div style="font-weight:800;font-style:italic;font-size:22px;color:#00a651;line-height:1">KATANIM</div>
+              <div style="font-weight:600;font-size:10px;letter-spacing:2px;color:#0b260f;margin-top:3px">MODERN AGRICULTURE</div>
+            </td>
+          </tr></table>
+        </div>
+        <div style="height:4px;background:linear-gradient(90deg,#065535 0 20%,#1a5fc0 20% 40%,#fde26a 40% 60%,#e37238 60% 80%,#5f3c14 80% 100%);background-color:#00a651"></div>
+        <div style="padding:24px">
+          <h2 style="margin-top:0;color:#0b260f">${c.heading}</h2>
+          <p style="line-height:1.6">${c.body}</p>
           <p><b>Order:</b> ${esc(order.order_no)}</p>
           <table style="width:100%;border-collapse:collapse;font-size:14px">${rows}
-            <tr><td style="padding:6px 0;border-top:1px solid #e2e8de">Shipping</td><td style="text-align:right;border-top:1px solid #e2e8de">${peso(order.shipping_fee)}</td></tr>
+            <tr><td style="padding:6px 0;border-top:1px solid #dfe9e1">Shipping</td><td style="text-align:right;border-top:1px solid #dfe9e1">${peso(order.shipping_fee)}</td></tr>
             <tr><td style="padding:6px 0"><b>Total</b></td><td style="text-align:right"><b>${peso(order.total)}</b></td></tr>
           </table>
-          <p style="margin:28px 0"><a href="${c.link}" style="background:#2f9e64;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">${c.cta}</a></p>
-          <p style="font-size:12px;color:#5f6f66">You're receiving this because of an order at Katanim Modern Agriculture.</p>
+          <p style="margin:28px 0"><a href="${c.link}" style="background:#007a3c;color:#ffffff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold">${c.cta}</a></p>
         </div>
+        <div style="background:#0b260f;color:#d7ecdc;padding:16px 24px;font-size:12px">
+          <span style="font-style:italic;color:#fde26a">So clean, so good.</span> &nbsp;·&nbsp; #Katanim<br>
+          You're receiving this because of an order at Katanim Modern Agriculture.
+        </div>
+      </div>
       </div>`;
 
     const res = await fetch('https://api.resend.com/emails', {

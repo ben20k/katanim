@@ -12,7 +12,10 @@ export default function ManagerLayout() {
   return (
     <div className="container manager-layout">
       <nav className="side-nav">
-        <div className="eyebrow">Manager</div>
+        <div className="side-nav-brand">
+          <img src="/brand/katanim-emblem.webp" alt="" width="28" height="28" />
+          <span className="eyebrow">Manager</span>
+        </div>
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} end={l.end}>
             {l.label}
