@@ -17,6 +17,8 @@ export default function Checkout() {
 
   const [products, setProducts] = useState([]);
   const [regions, setRegions] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [lane, setLane] = useState(null); // { dest_name, eta }
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,10 +39,12 @@ export default function Checkout() {
     Promise.all([
       ids.length ? supabase.from('products').select('*').in('id', ids) : Promise.resolve({ data: [] }),
       supabase.from('shipping_regions').select('region, zone_code, sort').order('sort'),
+      supabase.from('shipping_provinces').select('province, region').order('province'),
       supabase.rpc('payment_method_capacity'),
-    ]).then(([p, r, m]) => {
+    ]).then(([p, r, pv, m]) => {
       setProducts(p.data || []);
       setRegions(r.data || []);
+      setProvinces(pv.data || []);
       setMethods((m.data || []).filter((x) => x.active));
       setLoading(false);
     });
@@ -70,19 +74,30 @@ export default function Checkout() {
   const problems = lines.filter((l) => !l.ok);
 
   // 0.1 automatic shipping fee
+  // J&T rate card: origin zone × destination (province, else region) × weight bracket
+  const regionProvinces = provinces.filter((p) => p.region === ship.region);
   useEffect(() => {
-    if (!ship.region) {
+    if (!ship.region || (regionProvinces.length > 0 && !ship.province)) {
       setFee(null);
+      setLane(null);
       return;
     }
     setFeeError('');
-    supabase.rpc('quote_shipping', { p_region: ship.region, p_weight_kg: weight }).then(({ data, error: err }) => {
-      if (err || data == null) {
-        setFee(null);
-        setFeeError(err ? err.message : 'We do not ship to this region yet.');
-      } else setFee(Number(data));
-    });
-  }, [ship.region, weight]);
+    supabase
+      .rpc('shipping_quote', { p_region: ship.region, p_weight_kg: weight, p_province: ship.province || null })
+      .then(({ data, error: err }) => {
+        const q = Array.isArray(data) ? data[0] : data;
+        if (err || !q) {
+          setFee(null);
+          setLane(null);
+          setFeeError(err ? err.message : 'We do not ship to this area yet.');
+        } else {
+          setFee(Number(q.fee));
+          setLane(q);
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ship.region, ship.province, weight, regionProvinces.length]);
 
   const total = fee == null ? null : round2(subtotal + fee);
   const types = [...new Set(methods.map((m) => m.type))];
@@ -195,15 +210,35 @@ export default function Checkout() {
                 <input required value={ship.address} onChange={set('address')} />
               </label>
               <label className="field">City / Municipality<input required value={ship.city} onChange={set('city')} /></label>
-              <label className="field">Province<input value={ship.province} onChange={set('province')} /></label>
               <label className="field">
                 Region
-                <select required value={ship.region} onChange={set('region')}>
+                <select
+                  required
+                  value={ship.region}
+                  onChange={(e) => {
+                    const region = e.target.value;
+                    const only = provinces.filter((p) => p.region === region);
+                    setShip({ ...ship, region, province: only.length === 1 ? only[0].province : '' });
+                  }}
+                >
                   <option value="">Select region…</option>
                   {regions.map((r) => (
                     <option key={r.region} value={r.region}>{r.region}</option>
                   ))}
                 </select>
+              </label>
+              <label className="field">
+                Province
+                {regionProvinces.length > 0 ? (
+                  <select required value={ship.province} onChange={set('province')}>
+                    <option value="">Select province…</option>
+                    {regionProvinces.map((p) => (
+                      <option key={p.province} value={p.province}>{p.province}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input value={ship.province} onChange={set('province')} disabled={!ship.region} placeholder={ship.region ? '' : 'Select a region first'} />
+                )}
               </label>
               <label className="field">ZIP code<input value={ship.zip} onChange={set('zip')} /></label>
               <label className="field span-2">
@@ -212,6 +247,12 @@ export default function Checkout() {
               </label>
             </div>
             {feeError && <div className="alert alert-error">{feeError}</div>}
+            {lane && fee != null && (
+              <div className="ship-quote">
+                <span>🚚 J&amp;T Express to <strong>{lane.dest_name}</strong></span>
+                <span>{peso(fee)}{lane.eta ? ` · ${lane.eta}` : ''}</span>
+              </div>
+            )}
           </section>
 
           {/* Payment */}
@@ -332,7 +373,7 @@ export default function Checkout() {
           </ul>
           <div className="row between"><span>Subtotal</span><span>{peso(subtotal)}</span></div>
           <div className="row between">
-            <span>Shipping · J&amp;T ({weight} kg)</span>
+            <span>Shipping · J&amp;T ({weight} kg{lane?.dest_name ? ` · ${lane.dest_name}` : ''})</span>
             <span>{fee == null ? '—' : peso(fee)}</span>
           </div>
           <div className="row between total"><span>Total</span><span>{total == null ? '—' : peso(total)}</span></div>

@@ -27,7 +27,7 @@ Assets live in `public/brand/` (emblem, full logo, "How I Grow Hydroponics" bann
 | # | Story | Implementation |
 |---|-------|----------------|
 | 0 | Customer can order products | `Shop` → `Cart` → `Checkout`. The `place_order()` RPC re-prices items server-side and deducts stock. |
-| 0.1 | Automatic shipping fee | `quote_shipping(region, weight)` uses the zone rate table (base fee + per extra kg). It is recalculated live at checkout and enforced again in `place_order`. Rates are editable in **Manager → Shipping rates**. *(J&T API impediment: see below.)* |
+| 0.1 | Automatic shipping fee (J&T rate card: origin × province × weight) | `quote_shipping(region, weight)` uses the zone rate table (base fee + per extra kg). It is recalculated live at checkout and enforced again in `place_order`. Rates are editable in **Manager → Shipping rates**. *(J&T API impediment: see below.)* |
 | 1 | Upload proof of payment | `OrderDetail` → each payment box has an upload field. Files go to the private `payment-proofs` bucket, then `submit_payment_proof()` runs. |
 | 2 | Manager views proof | **Manager → Orders → order**. The proof image is shown inline (signed URL) with the reference no. and upload time. |
 | – | Manager verifies payment reached the account | "✓ Payment received — verify" / "✕ Cannot verify" buttons call `manager_review_payment()`. |
@@ -158,14 +158,26 @@ You can also start it manually: GitHub → **Actions → CI / Deploy → Run wor
 
 **New database changes:** run `npx supabase migration new <name>`, write the SQL, and push. Never edit a migration that has already been applied.
 
+### 6. Facebook login
+The Sign in and Create account pages have a **Continue with Facebook** button, which uses Supabase Auth's Facebook provider. Configuration steps:
+1. developers.facebook.com → **Create app** → use case **Authenticate and request data from users with Facebook Login**.
+2. Facebook Login → Settings → **Valid OAuth Redirect URIs**: `https://<ref>.supabase.co/auth/v1/callback`
+3. App settings → Basic: App domain `katanimmodernagriculture.com`, Privacy Policy URL `https://katanimmodernagriculture.com/privacy`, User data deletion URL `https://katanimmodernagriculture.com/data-deletion`. Copy the **App ID** and **App Secret**.
+4. Supabase → Authentication → Sign In / Providers → **Facebook** → enable, then paste the App ID (as Client ID) and the App Secret.
+5. Switch the Meta app to **Live** (it needs the privacy URLs above). Until then, only people with a role on the app can log in.
+
+Edit the contact details in `src/lib/site.js` (used by the privacy pages).
+
 ---
 
 ## Impediments and next steps
 
-**J&T shipping-fee API (story 0.1).** J&T Express does not offer a self-serve public rate API. Access goes through their merchant/partner onboarding, so the app currently calculates fees from a **rate table you control** (zone by region, base fee for the first kg, fee per extra kg). This matches how J&T's published rate cards are structured. When API credentials are approved:
-1. Create an Edge Function `jnt-quote` that calls the J&T API with the origin, destination and weight.
-2. Call it from `Checkout.jsx` instead of `rpc('quote_shipping')`, and pass the quoted fee into `place_order`. Validate it server-side, for example by having the function store a signed quote ID that `place_order` checks.
-3. Keep `quote_shipping` as a fallback if the API is down.
+**J&T shipping fees (story 0.1).** J&T has no public rate API, so the store uses J&T Express Philippines' **published rate card**. It's seeded in `20261116020000_jnt_rate_card.sql` from the card as listed in January 2025.
+- Fee = rate for **origin zone → destination zone** for the order's total weight: up to 500 g, 1 kg, 3 kg, 4 kg, 5 kg and 6 kg.
+- Above 6 kg, an estimated "+ per kg" is added. J&T doesn't publish rates above 6 kg, so confirm heavy items.
+- The destination comes from the customer's **province**. Island provinces use J&T's Island rate.
+- Managers set the store's origin and edit every rate, the per-kg extra, delivery estimates and the province zones in **Manager → Shipping rates**, which also has a quote tester.
+- When J&T API access is approved, replace the body of `shipping_quote()` with a call to the API (via an Edge Function) and keep the table as a fallback.
 
 **Payment-method API integration (story 6.3).** Payments are currently **manual**: the customer pays by QR or transfer and the manager verifies the proof, as the stories describe. To automate later, a PH payment gateway such as PayMongo, Xendit or Dragonpay can create GCash, Maya and QR Ph charges and send a webhook on success. A Supabase Edge Function webhook handler would then set the payment to `verified` automatically. Proof upload can stay as the fallback for direct transfers.
 

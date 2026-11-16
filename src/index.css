@@ -378,3 +378,12 @@ legend { font-weight: 700; color: var(--green-700); padding: 0 6px; }
 .field .hint { font-weight: 400; }
 .signin-methods { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .signin-methods li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
+
+/* Shipping quote + rate editor */
+.ship-quote { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: #e8f1fd; color: #1d4782; font-size: 0.9rem; }
+.rate-matrix input { width: 76px; min-width: 0; text-align: right; }
+.rate-matrix th, .rate-matrix td { white-space: nowrap; }
+.rate-matrix tr.extra td { background: #fffaf0; }
+.rate-matrix tr.eta td input { width: 110px; text-align: left; }
+.calc-result { font-size: 1.4rem; font-weight: 700; color: var(--forest); }
+.province-table { max-height: 420px; overflow-y: auto; }
