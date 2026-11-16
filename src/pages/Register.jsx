@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext.jsx';
 import { errorMessage } from '../lib/format';
 import Logo from '../components/Logo.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 
 export default function Register() {
   const { user } = useAuth();
@@ -66,15 +67,22 @@ export default function Register() {
             Email
             <input type="email" required value={form.email} onChange={set('email')} autoComplete="email" />
           </label>
-          <label className="field">
-            Password
-            <input type="password" required value={form.password} onChange={set('password')} autoComplete="new-password" />
-          </label>
+          <PasswordInput
+            label="Password"
+            required
+            value={form.password}
+            onChange={(v) => setForm({ ...form, password: v })}
+            autoComplete="new-password"
+            hint="At least 8 characters."
+          />
           {error && <div className="alert alert-error">{error}</div>}
           <button className="btn btn-primary btn-block" disabled={busy}>
             {busy ? 'Creating account…' : 'Create account'}
           </button>
         </form>
+        <p className="muted small terms">
+          By continuing you agree to our <Link to="/privacy">Privacy Policy</Link>.
+        </p>
         <p className="small">
           Already have an account? <Link to={`/login?next=${encodeURIComponent(next)}`}>Sign in</Link>
         </p>

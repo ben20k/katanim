@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext.jsx';
 import { errorMessage } from '../lib/format';
 import Logo from '../components/Logo.jsx';
-import SocialLogin from '../components/SocialLogin.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 
 export default function Login() {
   const { user } = useAuth();
@@ -44,22 +44,18 @@ export default function Login() {
         <div className="auth-brand"><Logo size={72} /></div>
         <h1>Welcome back</h1>
         <p className="muted small">Sign in to order and track your Katanim deliveries.</p>
-        <SocialLogin next={next} />
         <form className="form" onSubmit={submit}>
           <label className="field">
             Email
             <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
           </label>
-          <label className="field">
-            Password
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </label>
+          <PasswordInput
+            label="Password"
+            required
+            value={password}
+            onChange={setPassword}
+            autoComplete="current-password"
+          />
           {error && <div className="alert alert-error">{error}</div>}
           {info && <div className="alert alert-success">{info}</div>}
           <button className="btn btn-primary btn-block" disabled={busy}>
