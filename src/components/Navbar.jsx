@@ -22,6 +22,7 @@ export default function Navbar() {
         <nav className="nav-links">
           <NavLink to="/" end>Shop</NavLink>
           {user && <NavLink to="/orders">My orders</NavLink>}
+          {user && <NavLink to="/account">Account</NavLink>}
           {isManager && <NavLink to="/manager">Manager</NavLink>}
           <NavLink to="/cart" className="cart-link">
             Cart{count > 0 && <span className="cart-count">{count}</span>}

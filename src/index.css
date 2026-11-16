@@ -354,3 +354,27 @@ legend { font-weight: 700; color: var(--green-700); padding: 0 6px; }
 .no-proof { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .no-proof .alert { width: 100%; margin: 0; }
 .payment-head .right .badge-warn { margin-top: 2px; }
+
+/* Social login */
+.social-login { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 4px; }
+.btn-facebook { background: #1877f2; color: #fff; gap: 10px; }
+.btn-facebook:hover:not(:disabled) { background: #0f63d0; }
+.divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 0.82rem; margin: 6px 0 0; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.terms { text-align: center; margin-bottom: 4px; }
+
+/* Long-form text pages (privacy, data deletion) */
+.prose { max-width: 760px; padding-top: 32px; }
+.prose h2 { font-size: 1.15rem; margin-top: 1.6em; }
+.prose p, .prose li { color: #2c3b31; }
+.prose ul, .prose ol { padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
+
+/* Account & password */
+.narrow-wide { max-width: 640px; padding-top: 28px; }
+.password-input { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 9px; background: #fff; padding-right: 12px; }
+.password-input:focus-within { outline: 2px solid rgba(47, 158, 100, 0.35); border-color: var(--green-500); }
+.password-input input { border: 0; outline: none; }
+.password-input .link { font-weight: 600; text-decoration: none; }
+.field .hint { font-weight: 400; }
+.signin-methods { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.signin-methods li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }

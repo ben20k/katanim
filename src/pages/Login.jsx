@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext.jsx';
 import { errorMessage } from '../lib/format';
 import Logo from '../components/Logo.jsx';
+import SocialLogin from '../components/SocialLogin.jsx';
 
 export default function Login() {
   const { user } = useAuth();
@@ -31,10 +32,10 @@ export default function Login() {
   async function resetPassword() {
     if (!email) return setError('Enter your email first.');
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     if (err) setError(errorMessage(err));
-    else setInfo('Password reset link sent. Check your email.');
+    else setInfo('If an account exists for that email, a password reset link has been sent. Check your inbox.');
   }
 
   return (
@@ -43,6 +44,7 @@ export default function Login() {
         <div className="auth-brand"><Logo size={72} /></div>
         <h1>Welcome back</h1>
         <p className="muted small">Sign in to order and track your Katanim deliveries.</p>
+        <SocialLogin next={next} />
         <form className="form" onSubmit={submit}>
           <label className="field">
             Email
