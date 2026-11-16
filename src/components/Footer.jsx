@@ -20,6 +20,8 @@ export default function Footer() {
           <strong>We deliver nationwide</strong>
           <span>via J&amp;T Express</span>
           <span>Pay with GCash, Maya or bank QR</span>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/data-deletion">Delete my data</Link>
         </div>
       </div>
       <div className="container footer-bottom">
