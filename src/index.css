@@ -387,3 +387,4 @@ legend { font-weight: 700; color: var(--green-700); padding: 0 6px; }
 .rate-matrix tr.eta td input { width: 110px; text-align: left; }
 .calc-result { font-size: 1.4rem; font-weight: 700; color: var(--forest); }
 .province-table { max-height: 420px; overflow-y: auto; }
+.cancel-row { margin: -6px 0 12px; }

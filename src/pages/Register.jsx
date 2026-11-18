@@ -4,12 +4,13 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext.jsx';
 import { errorMessage } from '../lib/format';
 import Logo from '../components/Logo.jsx';
+import { safeNext } from '../lib/safeNext';
 import PasswordInput from '../components/PasswordInput.jsx';
 
 export default function Register() {
   const { user } = useAuth();
   const [params] = useSearchParams();
-  const next = params.get('next') || '/';
+  const next = safeNext(params.get('next'));
   const [form, setForm] = useState({ full_name: '', phone: '', email: '', password: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');

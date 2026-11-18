@@ -34,7 +34,7 @@ export default function Comments({ orderId, comments = [], onChange, highlight =
       {sorted.length === 0 && <p className="muted small">No comments yet.</p>}
       <ul className="comments">
         {sorted.map((c) => {
-          const fromStore = c.profiles?.role === 'manager';
+          const fromStore = c.from_staff;
           return (
             <li key={c.id} className={`${fromStore ? 'from-store' : 'from-customer'} ${c.is_internal ? 'internal' : ''}`}>
               <div className="comment-meta">

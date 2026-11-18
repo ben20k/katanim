@@ -166,15 +166,34 @@ Deno.serve(async (req) => {
       </div>
       </div>`;
 
+    // Send each event at most once per status change (stops repeat-trigger spam).
+    const { data: entered } = await admin
+      .from('order_status_history').select('created_at')
+      .eq('order_id', order_id).eq('status', rule.status)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    const { error: dupErr } = await admin
+      .from('notification_log')
+      .insert({ order_id, event, status_at: entered?.created_at ?? order.updated_at });
+    if (dupErr) {
+      if (dupErr.code === '23505') return json({ skipped: 'Already sent' });
+      throw dupErr;
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: EMAIL_FROM, to, subject: c.subject, html }),
     });
     const out = await res.json();
-    if (!res.ok) return json({ error: 'Resend error', details: out }, 502);
+    if (!res.ok) {
+      console.error('Resend error', out);
+      // let a later retry send it
+      await admin.from('notification_log').delete().match({ order_id, event, status_at: entered?.created_at ?? order.updated_at });
+      return json({ error: 'Email could not be sent' }, 502);
+    }
     return json({ sent: true, id: out.id });
   } catch (e) {
-    return json({ error: String(e) }, 500);
+    console.error(e);
+    return json({ error: 'Internal error' }, 500);
   }
 });

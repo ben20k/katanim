@@ -11,6 +11,7 @@ import OrderTimeline from '../components/OrderTimeline.jsx';
 import ProofViewer from '../components/ProofViewer.jsx';
 import Comments from '../components/Comments.jsx';
 import Spinner from '../components/Spinner.jsx';
+import ConfirmDialog from '../components/ConfirmDialog.jsx';
 
 export const ORDER_SELECT = `*,
   order_items(*),
@@ -24,6 +25,7 @@ export default function OrderDetail() {
   const [order, setOrder] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   const load = useCallback(async () => {
     const { data, error: err } = await supabase.from('orders').select(ORDER_SELECT).eq('id', id).single();
@@ -53,13 +55,22 @@ export default function OrderDetail() {
     load();
   }
 
+  async function cancelOrder() {
+    setBusy(true);
+    const { error: err } = await supabase.rpc('customer_cancel_order', { p_order_id: id });
+    setBusy(false);
+    setCancelOpen(false);
+    if (err) return setError(errorMessage(err));
+    load();
+  }
+
   if (!order && !error) return <Spinner />;
   if (!order) return <div className="container narrow"><div className="alert alert-error">{error}</div></div>;
 
   const st = ORDER_STATUS[order.status];
   const payments = [...(order.order_payments || [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   const canUpload = CAN_UPLOAD.includes(order.status);
-  const managerComments = (order.order_comments || []).filter((c) => c.profiles?.role === 'manager');
+  const managerComments = (order.order_comments || []).filter((c) => c.from_staff);
   const latestNote = managerComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
 
   return (
@@ -102,6 +113,26 @@ export default function OrderDetail() {
           </button>
         </div>
       )}
+
+      {['pending_payment', 'payment_rejected'].includes(order.status) &&
+        !payments.some((p) => ['submitted', 'verified'].includes(p.status)) && (
+          <div className="row end cancel-row">
+            <button className="btn btn-danger btn-sm" onClick={() => setCancelOpen(true)} disabled={busy}>
+              Cancel order
+            </button>
+          </div>
+        )}
+      <ConfirmDialog
+        open={cancelOpen}
+        title="Cancel this order?"
+        confirmLabel="Yes, cancel order"
+        cancelLabel="Keep order"
+        busy={busy}
+        onCancel={() => setCancelOpen(false)}
+        onConfirm={cancelOrder}
+      >
+        <p>The items go back on sale and you won't be able to pay for this order anymore. Unpaid orders are also cancelled automatically after 48 hours.</p>
+      </ConfirmDialog>
 
       <div className="two-col">
         <div className="stack">

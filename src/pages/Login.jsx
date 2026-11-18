@@ -4,13 +4,14 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext.jsx';
 import { errorMessage } from '../lib/format';
 import Logo from '../components/Logo.jsx';
+import { safeNext } from '../lib/safeNext';
 import PasswordInput from '../components/PasswordInput.jsx';
 
 export default function Login() {
   const { user } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const next = params.get('next') || '/';
+  const next = safeNext(params.get('next'));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
